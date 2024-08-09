@@ -1,0 +1,5 @@
+ODOO_DB=database name
+ODOO_USERNAME="username"
+ODOO_PASSWORD="password"
+
+ODOO_HOST=odoohost
