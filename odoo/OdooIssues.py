@@ -1,6 +1,8 @@
 #
 #
 
+from .OdooIssue import OdooIssue 
+
 class OdooIssues:
     def __init__(self, odoo_info):
         self.odoo_info = odoo_info
