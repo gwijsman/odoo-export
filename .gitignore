@@ -166,3 +166,4 @@ cython_debug/
 .secrets
 secrets
 secrets.py
+output

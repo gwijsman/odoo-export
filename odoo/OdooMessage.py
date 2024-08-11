@@ -1,7 +1,6 @@
 #
 #
 
-from .OdooMessage import OdooMessage 
 from html.parser import HTMLParser
 
 # https://docs.python.org/3/library/html.parser.html
@@ -9,67 +8,63 @@ class HTMLFilter(HTMLParser):
     text = ""
     def handle_data(self, data):
         self.text += data + '\n'
+    def unknown_decl(self, data):
+        print('\n')
+        print('Unknown data decl') 
+        print('\n')
+        print(data)
+        print('\n')
+    def handle_startendtag(self, tags, attrs):
+        print('\n')
+        print('handle start end') 
+        print('\n')
+        print(tags)
+        print('\n')
+        print(attrs)
+        print('\n')
+
         
-class OdooIssue:
-    def __init__(self, odoo_info, id):
-        # print("Init issue: ", id)
+class OdooMessage:
+    def __init__(self, parent, id):
         self.id = id
-        self.odoo_info = odoo_info
-        self.issue = self.get_from_odoo()
-        self.issue['product'] = self.product()
-        self.folder = False 
+        self.parent = parent 
+        self.odoo_info = parent.odoo_info
+        self.message = self.get_from_odoo()
+        self.folder = parent.folder
+        self.debug_dump()
         
     def __str__(self):
-        if self.issue != False:
-            title = self.issue['display_name']
+        if self.message != False:
+            title = self.message['display_name']
         else:
             title = "empty/no-access"
-        return f"OdooIssue with id: {self.id} - {title}"
+        return f"OdooMessage with id: {self.id} - {title}"
         
     def get_from_odoo(self):
         try:
-            return self.odoo_info.kw_read_result('project.issue', [self.id])
+            return self.odoo_info.kw_read_result('mail.message', [self.id])
         except Error as v:
             print("ERROR AUTHENTICATING", v)
             return False
 
     def debug_dump(self, with_keys=True):
-        if self.issue == False:
+        if self.message == False:
             print(self)
             return
         print("==========", self.id)
         if with_keys:
-            for i_key in self.issue.keys():
+            for i_key in self.message.keys():
                 print(i_key)
         print("==========", self.id)
         print(self)
         print("==========", self.id)
         for i_key in [
                 'display_name',
-                'product',
-                'name', 
-                'partner_id',
-                'analytic_account_id',
-                'user_id',
-                'priority',
-                'issue_stage_id',
-                'email_from',
-                'message_ids']:
-            print(i_key, ": ", self.issue[i_key])
+                'body',
+                'create_date', 
+                'create_uid']: 
+            print(i_key, ": ", self.message[i_key])
         print("==========", self.id)
-        
-    def product(self):
-        if self.issue == False:
-            return 'Unknow'
-        analytic_account = self.issue['analytic_account_id'][1]
-        if 'SWEG' in analytic_account:
-            return 'SWEG'
-        elif 'Diagnostics'in analytic_account:
-            return 'Diagnostics'
-        elif ('Water Office' in analytic_account) or ('WO'in analytic_account):
-            return 'Water Office'
-        else:
-            return 'Unknown'
         
     def write_to_text_file(self, folder):
         # folder is the folder to write the file to
@@ -114,27 +109,22 @@ class OdooIssue:
         self.write_description(f)
         self.write_messages(f)
 
-    def write_description(self, f):
-        d = self.issue['description']
+    def write_body(self, f):
+        b = self.message['body']
         f.write('\n')
         f.write('\n')
-        f.write('Description: ') 
+        f.write('Body: ') 
         f.write('\n')
         
         hf = HTMLFilter()
-        hf.feed(d)
-        hf.close() 
+        hf.feed(b)
+        hf.close()
         f.write(hf.text)
-        
         f.write('\n')
         f.write('\n')
 
-    def write_messages(self, f):
-        msgids = self.issue['message_ids']
-        f.write('Messages: ') 
+    def write_on(self, f):
+        f.write(self.__str__())
         f.write('\n')
-        for id in msgids:
-            msg = OdooMessage(self, id)
-            msg.write_on(f)
+        self.write_body(f)
         f.write('\n')
-

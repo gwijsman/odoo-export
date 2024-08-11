@@ -25,6 +25,8 @@ def main():
     
     host = os.getenv('ODOO_HOST')
     url = "https://" + host + "/xmlrpc/2/"
+
+    outputfolder = os.getenv('TEXT_OUTPUT_FOLDER')
     
     odoo_info = OdooInfo(db, username, password, host)
     print(odoo_info)
@@ -33,6 +35,10 @@ def main():
     
     for issue in odoo_issues: 
         print(issue)
+        # issue.debug_dump(False)
+        # issue.debug_dump()
+        issue.write_to_text_file(outputfolder)
+        exit()
         
 if __name__ == "__main__":
     print("Starting do-export...")
