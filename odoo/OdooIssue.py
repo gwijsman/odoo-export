@@ -2,14 +2,8 @@
 #
 
 from .OdooMessage import OdooMessage 
-from html.parser import HTMLParser
+from .OdooHTMLParser import OdooHTMLParser
 
-# https://docs.python.org/3/library/html.parser.html
-class HTMLFilter(HTMLParser):
-    text = ""
-    def handle_data(self, data):
-        self.text += data + '\n'
-        
 class OdooIssue:
     def __init__(self, odoo_info, id):
         # print("Init issue: ", id)
@@ -98,7 +92,6 @@ class OdooIssue:
                 'display_name',
                 'product',  
                 'name',
-                'description',
                 'message_summary',
                 'partner_id',
                 'analytic_account_id',
@@ -121,10 +114,10 @@ class OdooIssue:
         f.write('Description: ') 
         f.write('\n')
         
-        hf = HTMLFilter()
-        hf.feed(d)
-        hf.close() 
-        f.write(hf.text)
+        ohp = OdooHTMLParser()
+        ohp.feed(d)
+        ohp.close() 
+        f.write(ohp.text)
         
         f.write('\n')
         f.write('\n')

@@ -1,29 +1,8 @@
 #
 #
 
-from html.parser import HTMLParser
+from .OdooHTMLParser import OdooHTMLParser
 
-# https://docs.python.org/3/library/html.parser.html
-class HTMLFilter(HTMLParser):
-    text = ""
-    def handle_data(self, data):
-        self.text += data + '\n'
-    def unknown_decl(self, data):
-        print('\n')
-        print('Unknown data decl') 
-        print('\n')
-        print(data)
-        print('\n')
-    def handle_startendtag(self, tags, attrs):
-        print('\n')
-        print('handle start end') 
-        print('\n')
-        print(tags)
-        print('\n')
-        print(attrs)
-        print('\n')
-
-        
 class OdooMessage:
     def __init__(self, parent, id):
         self.id = id
@@ -31,7 +10,8 @@ class OdooMessage:
         self.odoo_info = parent.odoo_info
         self.message = self.get_from_odoo()
         self.folder = parent.folder
-        self.debug_dump()
+        # self.debug_dump(False)
+        # self.debug_dump()
         
     def __str__(self):
         if self.message != False:
@@ -51,19 +31,22 @@ class OdooMessage:
         if self.message == False:
             print(self)
             return
-        print("==========", self.id)
         if with_keys:
+            print("==========", self.id)
+            print(self)
+            print("==========", self.id)
             for i_key in self.message.keys():
-                print(i_key)
-        print("==========", self.id)
-        print(self)
-        print("==========", self.id)
-        for i_key in [
-                'display_name',
-                'body',
-                'create_date', 
-                'create_uid']: 
-            print(i_key, ": ", self.message[i_key])
+                print(i_key, ": ", self.message[i_key])
+        else:
+            print("==========", self.id)
+            print(self)
+            print("==========", self.id)
+            for i_key in [
+                    'display_name',
+                    'body',
+                    'create_date', 
+                    'create_uid']: 
+                print(i_key, ": ", self.message[i_key])
         print("==========", self.id)
         
     def write_to_text_file(self, folder):
@@ -116,10 +99,10 @@ class OdooMessage:
         f.write('Body: ') 
         f.write('\n')
         
-        hf = HTMLFilter()
-        hf.feed(b)
-        hf.close()
-        f.write(hf.text)
+        ohp = OdooHTMLParser()
+        ohp.feed(b)
+        ohp.close()
+        f.write(ohp.text)
         f.write('\n')
         f.write('\n')
 

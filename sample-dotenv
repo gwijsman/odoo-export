@@ -3,3 +3,7 @@ ODOO_USERNAME="username"
 ODOO_PASSWORD="password"
 
 ODOO_HOST=odoohost
+
+TEXT_OUTPUT_FOLDER=/tmp
+
+LOG_FILE=/var/log/logfile.log

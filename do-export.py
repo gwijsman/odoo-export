@@ -11,13 +11,19 @@
 #
 
 import os
+import logging
 from dotenv import load_dotenv
 from odoo.OdooInfo import OdooInfo
 from odoo.OdooIssues import OdooIssues
 from odoo.OdooIssue import OdooIssue
+from ImportLogging import setup_logging 
+
+logger = logging.getLogger(__name__)
 
 def main():
     load_dotenv()
+    setup_logging()
+    logger.info("Starting ODOO Export...")
     
     db = os.getenv('ODOO_DB')
     username = os.getenv('ODOO_USERNAME')
@@ -29,7 +35,7 @@ def main():
     outputfolder = os.getenv('TEXT_OUTPUT_FOLDER')
     
     odoo_info = OdooInfo(db, username, password, host)
-    print(odoo_info)
+    logger.debug("DB connection: %s", odoo_info)
     
     odoo_issues = OdooIssues(odoo_info)
     
@@ -38,9 +44,8 @@ def main():
         # issue.debug_dump(False)
         # issue.debug_dump()
         issue.write_to_text_file(outputfolder)
-        exit()
+        # exit()
+    logger.info("ODOO Export done.")
         
 if __name__ == "__main__":
-    print("Starting do-export...")
     main()
-    print("do-export done.")

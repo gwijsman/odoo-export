@@ -1,6 +1,9 @@
 #
 #
 from xmlrpc.client import ServerProxy, Error
+import logging
+
+logger = logging.getLogger(__name__)
 
 class OdooInfo:
     def __init__(self, db, username, password, host):
@@ -12,6 +15,8 @@ class OdooInfo:
         self.uid = False
         self.odoo_version = False 
         self.authenticate()
+        logger.warning("Initialized Odoo Connection")
+        logger.debug('Connected to: %s', self.url)
 
     def __str__(self):
         return f"{self.host} ; {self.db} ; {self.odoo_version} ; {self.uid} ; {self.username}"
@@ -20,21 +25,20 @@ class OdooInfo:
         with ServerProxy(self.url + "common") as proxy:
             try:
                 self.odoo_version = proxy.version()['server_version']
-                print("Running version of ODOO: ", self.odoo_version)
+                logger.info("Running version of ODOO: %s", self.odoo_version)
             except Error as v:
-                print("ERROR", v)
+                logger.critical("ERROR connecting to DB: %s", v)
 
             try: 
                 self.uid = proxy.authenticate(self.db, self.username, self.password, {})
             except Error as v:
-                print("ERROR AUTHENTICATING", v)
+                logger.critical("ERROR AUTHENTICATING %s", v)
                 
             if (self.uid != False): 
-                print('Authenticated as user id: ', self.uid)
+                logger.info('Authenticated as user id: %s', self.uid)
             else: 
-                print('Authentication wrong, please correct!')
-                #exit()
-                os._exit(1)
+                logger.critical('Authentication wrong, please correct!')
+                exit(1)
 
     def kw_search_result(self, model, domain):
         with ServerProxy(self.url + 'object') as models: 
