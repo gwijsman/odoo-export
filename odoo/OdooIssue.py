@@ -1,12 +1,28 @@
 #
+# OdooIssue
+#
+# wrapper with functionality specific for the Issue itself
+#
+# Main purpose is writing the issue "readable" to file
+# The LLM should be able to analyse these txt files
+# and translate them to a vector graph with help of langchain 
+# 
+# Gert Wijsman
+# August 2024
+#
+# inspriation:
+# I love Object Oriented programming 
 #
 
+import logging
 from .OdooMessage import OdooMessage 
 from .OdooHTMLParser import OdooHTMLParser
 
+logger = logging.getLogger(__name__)
+
 class OdooIssue:
     def __init__(self, odoo_info, id):
-        # print("Init issue: ", id)
+        logger.debug("Init issue: %i", id)
         self.id = id
         self.odoo_info = odoo_info
         self.issue = self.get_from_odoo()
@@ -24,7 +40,7 @@ class OdooIssue:
         try:
             return self.odoo_info.kw_read_result('project.issue', [self.id])
         except Error as v:
-            print("ERROR AUTHENTICATING", v)
+            logger.error("ERROR AUTHENTICATING %s", v)
             return False
 
     def debug_dump(self, with_keys=True):
@@ -73,14 +89,14 @@ class OdooIssue:
         try:
             f = open(filename, 'w') # replace with 'x' later (when no overwriting needed!) 
         except:
-            print("Failed opening file: ", filename)
+            logger.error("Failed opening file: %s", filename)
             return 
-        # try: 
+        # try: FIX ME!!!
         self.write_info(f)
         # except:
         # print("wrong")
         f.close() 
-        print("created file: ", filename)
+        logger.info("created file: %s", filename)
 
     def write_info(self, f):
         i = self.issue

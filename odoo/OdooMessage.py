@@ -1,7 +1,23 @@
 #
+# OdooMessage
+#
+# wrapper with functionality specific for the Message with the Issue itself
+#
+# Main purpose is writing the message "readable" to file
+# The LLM should be able to analyse these txt files
+# and translate them to a vector graph with help of langchain 
+# 
+# Gert Wijsman
+# August 2024
+#
+# inspriation:
+# I love Object Oriented programming 
 #
 
+import logging
 from .OdooHTMLParser import OdooHTMLParser
+
+logger = logging.getLogger(__name__)
 
 class OdooMessage:
     def __init__(self, parent, id):
@@ -24,7 +40,7 @@ class OdooMessage:
         try:
             return self.odoo_info.kw_read_result('mail.message', [self.id])
         except Error as v:
-            print("ERROR AUTHENTICATING", v)
+            self.error("ERROR AUTHENTICATING %s", v)
             return False
 
     def debug_dump(self, with_keys=True):
@@ -57,14 +73,14 @@ class OdooMessage:
         try:
             f = open(filename, 'w') # replace with 'x' later (when no overwriting needed!) 
         except:
-            print("Failed opening file: ", filename)
+            self.error("Failed opening file: %s", filename)
             return 
-        # try: 
+        # try: FIX ME!!!
         self.write_info(f)
         # except:
         # print("wrong")
         f.close() 
-        print("created file: ", filename)
+        self.info("Created file: %s", filename)
 
     def write_info(self, f):
         i = self.issue

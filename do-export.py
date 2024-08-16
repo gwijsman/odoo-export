@@ -40,7 +40,7 @@ def main():
     odoo_issues = OdooIssues(odoo_info)
     
     for issue in odoo_issues: 
-        print(issue)
+        logger.debug(issue)
         # issue.debug_dump(False)
         # issue.debug_dump()
         issue.write_to_text_file(outputfolder)

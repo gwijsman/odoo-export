@@ -1,5 +1,16 @@
 #
+# OdooInfo
 #
+# wrapper with functionality specific for the database connection
+# configuration is done via .env (see sample and do-export.py 
+# 
+# Gert Wijsman
+# August 2024
+#
+# inspriation:
+# I love Object Oriented programming 
+#
+
 from xmlrpc.client import ServerProxy, Error
 import logging
 
@@ -15,7 +26,7 @@ class OdooInfo:
         self.uid = False
         self.odoo_version = False 
         self.authenticate()
-        logger.warning("Initialized Odoo Connection")
+        logger.info("Initialized Odoo Connection")
         logger.debug('Connected to: %s', self.url)
 
     def __str__(self):

@@ -1,7 +1,20 @@
 #
+# Use HTMLParser to translate the html like formatted fields to text
+#
+# Replace as wierd spaces with normal spaces
+# 
+# Gert Wijsman
+# August 2024
+#
+# inspriation:
+# https://docs.python.org/3/library/html.parser.html
+# https://en.wikipedia.org/wiki/Whitespace_character#Unicode
 #
 
+import logging
 from html.parser import HTMLParser
+
+logger = logging.getLogger(__name__)
 
 # https://en.wikipedia.org/wiki/Whitespace_character#Unicode
 charsReplaceBySpace = [
@@ -23,31 +36,3 @@ class OdooHTMLParser(HTMLParser):
             d = d.replace(c, ' ')
         d += '\n'
         self.text += d
-    # def unknown_decl(self, data):
-    #     print('\n')
-    #     print('Unknown data decl') 
-    #     print('\n')
-    #     print(data)
-    #     print('\n')
-    # def handle_startendtag(self, tags, attrs):
-    #     print('\n')
-    #     print('handle start end') 
-    #     print('\n')
-    #     print(tags)
-    #     print('\n')
-    #     print(attrs)
-    #     print('\n')
-    # def handle_charref(self, name):
-    #     print('\n')
-    #     print('handle char ref') 
-    #     print('\n')
-    #     print(name)
-    #     print('\n')
-    # def handle_entityref(self, name):
-    #     print('\n')
-    #     print('handle entity ref') 
-    #     print('\n')
-    #     print(name)
-    #     print('\n')
-
-        
