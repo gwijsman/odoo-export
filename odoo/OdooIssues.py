@@ -48,3 +48,4 @@ class OdooIssues:
     def issues(self):
         return self.list_of_issues 
 
+        

@@ -26,7 +26,7 @@ def setup_logging():
     # Console
     # create console handler and set level to debug
     ch1 = logging.StreamHandler(sys.stdout)
-    ch1.setLevel(logging.INFO)
+    ch1.setLevel(logging.DEBUG)
     formatter1 = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     ch1.setFormatter(formatter1)
     log.addHandler(ch1)

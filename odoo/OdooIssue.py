@@ -17,6 +17,8 @@
 import logging
 from .OdooMessage import OdooMessage 
 from .OdooHTMLParser import OdooHTMLParser
+from .OdooAttachments import OdooAttachments
+from .OdooAttachment import OdooAttachment
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +29,8 @@ class OdooIssue:
         self.odoo_info = odoo_info
         self.issue = self.get_from_odoo()
         self.issue['product'] = self.product()
-        self.folder = False 
+        self.folder = False
+        self.attachments = False 
         
     def __str__(self):
         if self.issue != False:
@@ -39,7 +42,7 @@ class OdooIssue:
     def get_from_odoo(self):
         try:
             return self.odoo_info.kw_read_result('project.issue', [self.id])
-        except Error as v:
+        except Exception as v:
             logger.error("ERROR AUTHENTICATING %s", v)
             return False
 
@@ -81,20 +84,21 @@ class OdooIssue:
         else:
             return 'Unknown'
         
-    def write_to_text_file(self, folder):
+    def write_to_text_file(self, folder, withAttachments=False):
         # folder is the folder to write the file to
         # subfoder div 100?!? (only if needed)
         self.folder = folder
+        self.attachments = withAttachments 
         filename = self.folder + '/' + str(self.id) + '.txt'
         try:
             f = open(filename, 'w') # replace with 'x' later (when no overwriting needed!) 
-        except:
+        except Exception:
             logger.error("Failed opening file: %s", filename)
             return 
-        # try: FIX ME!!!
-        self.write_info(f)
-        # except:
-        # print("wrong")
+        try:
+            self.write_info(f)
+        except Exception as v:
+            logger.error("Failed writing to file: %s", v) 
         f.close() 
         logger.info("created file: %s", filename)
 
@@ -122,6 +126,8 @@ class OdooIssue:
             f.write('\n')
         self.write_description(f)
         self.write_messages(f)
+        if self.attachments:
+            self.save_attachments_with_issue(f)
 
     def write_description(self, f):
         d = self.issue['description']
@@ -147,3 +153,24 @@ class OdooIssue:
             msg.write_on(f)
         f.write('\n')
 
+    def save_attachments_with_issue(self, f):
+        logger.debug("Save Attachments")
+        l = OdooAttachments(self.odoo_info, self)
+        for a in l:
+            attachment = OdooAttachment(self.odoo_info, self, a)
+            attachment.save()
+            attachment.add_url(f)
+
+    def domain_for_attachments(self):
+        # d = [[['res_model', '=', 'project.issue'], ['res_id', '=', 3998]]]
+        d = [[['res_model', '=', 'project.issue'], ['res_id', '=', self.id]]]
+        return d
+    
+# the attachments with the issue can be found by: 
+# resource model = project.issue
+# resource id = de id van het issue
+# (resource name is teh title string of the issue) 
+
+# table: ir.attachment
+# field: res_model (char)
+# field: res_id (int) 

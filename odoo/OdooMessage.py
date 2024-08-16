@@ -39,7 +39,7 @@ class OdooMessage:
     def get_from_odoo(self):
         try:
             return self.odoo_info.kw_read_result('mail.message', [self.id])
-        except Error as v:
+        except Exception as v:
             self.error("ERROR AUTHENTICATING %s", v)
             return False
 
@@ -72,13 +72,13 @@ class OdooMessage:
         filename = self.folder + '/' + str(self.id) + '.txt'
         try:
             f = open(filename, 'w') # replace with 'x' later (when no overwriting needed!) 
-        except:
+        except Exception as v:
             self.error("Failed opening file: %s", filename)
             return 
-        # try: FIX ME!!!
-        self.write_info(f)
-        # except:
-        # print("wrong")
+        try:
+            self.write_info(f)
+        except Exception as v:
+            logger.error("failed writing to file: %s", v)
         f.close() 
         self.info("Created file: %s", filename)
 

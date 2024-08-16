@@ -37,12 +37,12 @@ class OdooInfo:
             try:
                 self.odoo_version = proxy.version()['server_version']
                 logger.info("Running version of ODOO: %s", self.odoo_version)
-            except Error as v:
+            except Exception as v:
                 logger.critical("ERROR connecting to DB: %s", v)
 
             try: 
                 self.uid = proxy.authenticate(self.db, self.username, self.password, {})
-            except Error as v:
+            except Exception as v:
                 logger.critical("ERROR AUTHENTICATING %s", v)
                 
             if (self.uid != False): 
@@ -55,6 +55,7 @@ class OdooInfo:
         with ServerProxy(self.url + 'object') as models: 
             result_list = models.execute_kw(self.db, self.uid, self.password,
                                             model, 'search', domain, {'offset': 0, 'limit': 5})
+            logger.warning("CURRENTLY LIMITED TO 5 RECORDS!")
         return result_list 
         
     def kw_read_result(self, model, domain):

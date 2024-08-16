@@ -43,7 +43,7 @@ def main():
         logger.debug(issue)
         # issue.debug_dump(False)
         # issue.debug_dump()
-        issue.write_to_text_file(outputfolder)
+        issue.write_to_text_file(outputfolder, True)
         # exit()
     logger.info("ODOO Export done.")
         
