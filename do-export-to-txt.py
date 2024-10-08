@@ -44,8 +44,8 @@ def main():
         # issue.debug_dump(False)
         # issue.debug_dump()
         issue.write_to_text_file(outputfolder, True)
+        break
         # exit()
-        break 
     logger.info("ODOO Export done.")
         
 if __name__ == "__main__":

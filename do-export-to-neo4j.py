@@ -13,10 +13,14 @@
 import os
 import logging
 from dotenv import load_dotenv
-from odoo.OdooInfo import OdooInfo
-from odoo.OdooIssues import OdooIssues
-from odoo.OdooIssue import OdooIssue
-from ImportLogging import setup_logging 
+from package.odoo.OdooInfo import OdooInfo
+from package.odoo.OdooIssues import OdooIssues
+from package.odoo.OdooIssue import OdooIssue
+from package.ImportLogging import setup_logging 
+from package.neo4j.Neo4jDB import Neo4jDB
+
+import sys
+sys.path.append("..")
 
 logger = logging.getLogger(__name__)
 
@@ -32,20 +36,22 @@ def main():
     host = os.getenv('ODOO_HOST')
     url = "https://" + host + "/xmlrpc/2/"
 
-    outputfolder = os.getenv('TEXT_OUTPUT_FOLDER')
-    
     odoo_info = OdooInfo(db, username, password, host)
     logger.debug("DB connection: %s", odoo_info)
     
     odoo_issues = OdooIssues(odoo_info)
+
+    neo4jdb = Neo4jDB() 
     
     for issue in odoo_issues: 
         logger.debug(issue)
         # issue.debug_dump(False)
         # issue.debug_dump()
-        issue.write_to_text_file(outputfolder, True)
+        issue.write_to_neo4j(neo4jdb) 
         # exit()
+        #break 
     logger.info("ODOO Export done.")
+    neo4jdb.close() 
         
 if __name__ == "__main__":
     main()
