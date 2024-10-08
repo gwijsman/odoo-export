@@ -166,5 +166,7 @@ cython_debug/
 .secrets
 secrets
 secrets.py
-output
+output/
 log/
+#*
+odoo-export.zip
