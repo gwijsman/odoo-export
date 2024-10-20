@@ -20,6 +20,7 @@ from .OdooHTMLParser import OdooHTMLParser
 from .OdooAttachments import OdooAttachments
 from .OdooAttachment import OdooAttachment
 from ..neo4j.Neo4jDB import Neo4jDB
+from pypher import Pypher, __
 
 logger = logging.getLogger(__name__)
 
@@ -179,41 +180,100 @@ class OdooIssue:
             logger.warning("Issue invalid! (%i)", self.id)
             return False 
         logger.info("Create issue in neo4j")
-        print(self)
-        self.debug_dump()
+        #        print(self)
+        #        self.debug_dump()
+        query, values = self.build_neo4j_query_and_values()
         with neo4jdb.session() as session:
-            query = ("CREATE (n:Issue \
-            {number: $number, \
-            id: randomUUID(), \
-            title: $title, \
-            product: $product, \
-            partner_id: $partner_id, \
-            analytic_account_id: $analytic_account_id, \
-            user_id: $user_id, \
-            priority: $priority, \
-            issue_stage_id: $issue_stage_id, \
-            email_from: $email_from \
-            }) "
-                     "RETURN n.id AS node_id")
             try:
-                result = session.run(
-                    query,
-                    number=self.id,
-                    title=self.issue['display_name'],
-                    product=self.issue['product'], 
-                    partner_id=self.issue['partner_id'][0],
-                    analytic_account_id=self.issue['analytic_account_id'][0],
-                    user_id=self.issue['user_id'][0],
-                    priority=self.issue['priority'],
-                    issue_stage_id=self.issue['issue_stage_id'][0],
-                    email_from=self.issue['email_from']
-                )
-                record = result.single()
+                result = session.run(query, values)
+                node_issue = result.single()
             finally:
                 session.close()
-        return record["node_id"] 
+        self.join_messages_to_issue(neo4jdb)
             
+    def build_neo4j_query_and_values(self):
+        q = Pypher()
+        q.MERGE.node('i', 'Issue', Number = self.id).SET(
+            __.i.__Name__      == self.issue['display_name'],
+            __.i.__Product__   == self.issue['product'], 
+            __.i.__Priority__  == self.issue['priority'],
+            __.i.__EmailFrom__ == self.issue['email_from']
+        )
+        self.join_partner_to_query(q)
+        self.join_analytic_account_to_query(q)
+        self.join_user_to_query(q)
+        self.join_issue_stage_to_query(q)
+        self.join_description_to_query(q)
+        cypher = str(q)
+        params = q.bound_params
+        print("Pypher: ", cypher)
+        print("  with: ", params)
+        return cypher, params 
 
+    def join_partner_to_query(self, query):
+        odoo_partner = self.issue['partner_id']
+        if odoo_partner == False:
+            return
+        print('PA: ', odoo_partner)
+        query.MERGE.node('part', 'Partner', number = odoo_partner[0]).SET(
+            __.part.__name__ == odoo_partner[1]
+            )
+        query.MERGE.node('i').rel_out(labels='PARTNER').node('part')
+
+    def join_analytic_account_to_query(self, query):
+        odoo_analytic_account = self.issue['analytic_account_id']
+        if odoo_analytic_account == False:
+            return
+        print('AA: ', odoo_analytic_account) 
+        query.MERGE.node('aa', 'AnalyticAccount', number = odoo_analytic_account[0]).SET(
+            __.aa.__name__ == odoo_analytic_account[1]
+            )
+        query.MERGE.node('i').rel_out(labels='ANALYTICACCOUNT').node('aa')
+    
+    def join_user_to_query(self, query):
+        odoo_user = self.issue['user_id']
+        if odoo_user == False:
+            return
+        print('US: ', odoo_user)
+        query.MERGE.node('u', 'User', number = odoo_user[0]).SET(
+            __.u.__name__ == odoo_user[1]
+            )
+        query.MERGE.node('i').rel_out(labels='USER').node('u')
+        
+    def join_issue_stage_to_query(self, query):
+        odoo_issue_stage = self.issue['issue_stage_id']
+        if odoo_issue_stage == False:
+            return
+        print('ST: ', odoo_issue_stage)
+        query.MERGE.node('st', 'Stage', number = odoo_issue_stage[0]).SET(
+            __.st.__name__ == odoo_issue_stage[1]
+            )
+        query.MERGE.node('i').rel_out(labels='STAGE').node('st')
+        
+    def join_description_to_query(self, query):
+        odoo_description = self.issue['description']
+        if odoo_description == False:
+            return
+
+        ohp = OdooHTMLParser()
+        ohp.feed(odoo_description)
+        ohp.close() 
+        t = ohp.text
+
+        print('DE: ', t)
+        print('--')
+        query.MERGE.node('de', 'DESCRIPTION', number = self.id).SET(
+            __.de.__description__ == t
+            )
+        query.MERGE.node('i').rel_out(labels='DESCRIPTION').node('de')
+
+    def join_messages_to_issue(self, session):
+        msgids = self.issue['message_ids']
+        print('MSGS: ', msgids) 
+        for id in msgids:
+            msg = OdooMessage(self, id)
+            msg.join_to_issue(session)
+            # break 
 
         
 # the attachments with the issue can be found by: 

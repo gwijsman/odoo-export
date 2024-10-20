@@ -16,6 +16,7 @@
 
 import logging
 from .OdooHTMLParser import OdooHTMLParser
+from pypher import Pypher, __
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +31,7 @@ class OdooMessage:
         # self.debug_dump()
         
     def __str__(self):
-        if self.message != False:
+        if self.is_valid(): 
             title = self.message['display_name']
         else:
             title = "empty/no-access"
@@ -42,6 +43,9 @@ class OdooMessage:
         except Exception as v:
             self.error("ERROR AUTHENTICATING %s", v)
             return False
+
+    def is_valid(self):
+        return self.message != False 
 
     def debug_dump(self, with_keys=True):
         if self.message == False:
@@ -127,3 +131,45 @@ class OdooMessage:
         f.write('\n')
         self.write_body(f)
         f.write('\n')
+
+    def join_to_issue(self, neo4jdb):
+        if not self.is_valid():
+            logger.warning("Message invalid! (%i)", self.id)
+            return False 
+        logger.info("Create message in neo4j for issue")
+        #        print(self)
+        #        self.debug_dump()
+        query, values = self.build_neo4j_query_and_values()
+        with neo4jdb.session() as session:
+            try:
+                result = session.run(query, values)
+                node_message = result.single()
+            finally:
+                session.close()
+        print(node_message)
+        return node_message
+    
+    def build_neo4j_query_and_values(self):
+        odoo_id = self.id 
+        odoo_name = self.message['display_name']
+        odoo_body = self.message['body']
+        
+        ohp = OdooHTMLParser()
+        ohp.feed(odoo_body)
+        ohp.close()
+        mt = ohp.text
+
+        print(odoo_id, '==> ')
+        q = Pypher()
+        q.MERGE.node('mt', 'MESSAGE', number = odoo_id).SET(
+            __.mt.__Name__ == odoo_name,
+            __.mt.__Text__ == mt
+        )
+        q.WITH.mt
+        q.MATCH.node('i', 'Issue').WHERE.i.__Number__ == self.parent.id
+        q.MERGE.node('i').rel_out(labels='MESSAGE').node('mt')
+        cypher = str(q)
+        params = q.bound_params
+        print("Pypher: ", cypher)
+        print("  with: ", params)
+        return cypher, params 

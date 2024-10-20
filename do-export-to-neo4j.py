@@ -19,9 +19,6 @@ from package.odoo.OdooIssue import OdooIssue
 from package.ImportLogging import setup_logging 
 from package.neo4j.Neo4jDB import Neo4jDB
 
-import sys
-sys.path.append("..")
-
 logger = logging.getLogger(__name__)
 
 def main():
@@ -44,12 +41,12 @@ def main():
     neo4jdb = Neo4jDB() 
     
     for issue in odoo_issues: 
-        logger.debug(issue)
+        logger.info(issue)
         # issue.debug_dump(False)
         # issue.debug_dump()
         issue.write_to_neo4j(neo4jdb) 
         # exit()
-        #break 
+        # break 
     logger.info("ODOO Export done.")
     neo4jdb.close() 
         
