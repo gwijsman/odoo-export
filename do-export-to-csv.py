@@ -16,8 +16,9 @@ from dotenv import load_dotenv
 from package.odoo.OdooInfo import OdooInfo
 from package.odoo.OdooIssues import OdooIssues
 from package.odoo.OdooIssue import OdooIssue
+from package.odoo.OdooCustomers import OdooCustomers
+from package.odoo.OdooCustomer import OdooCustomer
 from package.ImportLogging import setup_logging 
-from package.neo4j.Neo4jDB import Neo4jDB
 
 logger = logging.getLogger(__name__)
 
@@ -33,22 +34,35 @@ def main():
     host = os.getenv('ODOO_HOST')
     url = "https://" + host + "/xmlrpc/2/"
 
+    outputfolder = os.getenv('TEXT_OUTPUT_FOLDER')
+    
     odoo_info = OdooInfo(db, username, password, host)
     logger.debug("DB connection: %s", odoo_info)
     
-    odoo_issues = OdooIssues(odoo_info)
+    odoo_customers = OdooCustomers(odoo_info, [[['is_company', '=', True], ['supplier', '=', False], ['active', '=', True]]])
 
-    neo4jdb = Neo4jDB() 
-    
-    for issue in odoo_issues: 
-        logger.debug(issue)
-        # issue.debug_dump(False)
-        # issue.debug_dump()
-        issue.write_to_neo4j(neo4jdb) 
+    filename = outputfolder + '/customers.csv'
+    try:
+        f = open(filename, 'w') # replace with 'x' later (when no overwriting needed!) 
+    except Exception:
+        logger.error("Failed opening file: %s", filename)
+        return
+    #    try:
+    odoo_customers.first().write_header_to_csv(f)
+    for customer in odoo_customers: 
+        logger.debug(customer)
+        customer.debug_dump(False)
+        # customer.debug_dump()
+        customer.write_info_to_csv(f)
+        # break
         # exit()
-        #break 
+        #except Exception as v:
+        #logger.error("Failed writing to file: %s", v) 
+        #f.close() 
+        #logger.info("created file: %s", filename)
+    f.close() 
+    logger.info("created file: %s", filename)
     logger.info("ODOO Export done.")
-    neo4jdb.close() 
         
 if __name__ == "__main__":
     main()

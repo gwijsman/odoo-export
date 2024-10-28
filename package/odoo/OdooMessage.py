@@ -69,49 +69,6 @@ class OdooMessage:
                 print(i_key, ": ", self.message[i_key])
         print("==========", self.id)
         
-    def write_to_text_file(self, folder):
-        # folder is the folder to write the file to
-        # subfoder div 100?!? (only if needed)
-        self.folder = folder
-        filename = self.folder + '/' + str(self.id) + '.txt'
-        try:
-            f = open(filename, 'w') # replace with 'x' later (when no overwriting needed!) 
-        except Exception as v:
-            self.error("Failed opening file: %s", filename)
-            return 
-        try:
-            self.write_info(f)
-        except Exception as v:
-            logger.error("failed writing to file: %s", v)
-        f.close() 
-        self.info("Created file: %s", filename)
-
-    def write_info(self, f):
-        i = self.issue
-        if i == False:
-            f.write("no access to issue")
-            return
-        for i_key in [
-                'id', 
-                'display_name',
-                'product',  
-                'name',
-                'description',
-                'message_summary',
-                'partner_id',
-                'analytic_account_id',
-                'user_id',
-                'priority',
-                'issue_stage_id',
-                'email_from',
-                'message_ids']:
-            f.write(i_key)
-            f.write(": ")
-            f.write(str(self.issue[i_key]))
-            f.write('\n')
-        self.write_description(f)
-        self.write_messages(f)
-
     def write_body(self, f):
         b = self.message['body']
         f.write('\n')
@@ -135,8 +92,11 @@ class OdooMessage:
     def join_to_issue(self, neo4jdb):
         if not self.is_valid():
             logger.warning("Message invalid! (%i)", self.id)
+            return False
+        if self.skip_me():
+            logger.info("Message unnessary! (%i)", self.id)
             return False 
-        logger.info("Create message in neo4j for issue")
+        logger.info("Create message %i in neo4j for issue %i", self.id, self.parent.id)
         #        print(self)
         #        self.debug_dump()
         query, values = self.build_neo4j_query_and_values()
@@ -144,25 +104,28 @@ class OdooMessage:
             try:
                 result = session.run(query, values)
                 node_message = result.single()
-            finally:
-                session.close()
-        print(node_message)
+            except Exception as v:
+                logger.error("ERROR %s", v)
+                session.close() 
+                return 
+            session.close()
         return node_message
     
     def build_neo4j_query_and_values(self):
         odoo_id = self.id 
         odoo_name = self.message['display_name']
         odoo_body = self.message['body']
+        odoo_date = self.message['date']
         
         ohp = OdooHTMLParser()
         ohp.feed(odoo_body)
         ohp.close()
         mt = ohp.text
 
-        print(odoo_id, '==> ')
         q = Pypher()
-        q.MERGE.node('mt', 'MESSAGE', number = odoo_id).SET(
+        q.MERGE.node('mt', 'Message', number = odoo_id).SET(
             __.mt.__Name__ == odoo_name,
+            __.mt.__Date__ == odoo_date,
             __.mt.__Text__ == mt
         )
         q.WITH.mt
@@ -170,6 +133,20 @@ class OdooMessage:
         q.MERGE.node('i').rel_out(labels='MESSAGE').node('mt')
         cypher = str(q)
         params = q.bound_params
-        print("Pypher: ", cypher)
-        print("  with: ", params)
-        return cypher, params 
+        #print("Pypher: ", cypher)
+        #print("  with: ", params)
+        return cypher, params
+    
+    def skip_me(self):
+        odoo_body = self.message['body']
+        odoo_subtype = self.message['subtype_id']
+        if odoo_subtype == False:
+            return False
+        type = odoo_subtype[0]
+        #    if (type == 78) OR # 'Issue Stage Changed'
+        #    (type == 72) OR # 'Issue Blocked'
+        #    (type == 71) OR # 'Issue Assigned'
+        #    (type == 70): # 'Issue Created'
+        if type in {70,71,72,78}:
+            return True
+        return False 

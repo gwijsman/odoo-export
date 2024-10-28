@@ -33,7 +33,6 @@ class Neo4jDB:
     def verify(self):
         try:
             info = self.driver.get_server_info()
-            print(info)
         except:
             logger.error("Database configuration wrong!")
             self.close() 

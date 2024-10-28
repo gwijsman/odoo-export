@@ -21,7 +21,8 @@ def setup_logging():
     # configure the root logging
     log = logging.getLogger('root') 
 
-    log.setLevel(logging.INFO)
+    # log.setLevel(logging.INFO)
+    log.setLevel(logging.DEBUG)
     
     # Console
     # create console handler and set level to debug

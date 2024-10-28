@@ -179,17 +179,19 @@ class OdooIssue:
         if not self.is_valid():
             logger.warning("Issue invalid! (%i)", self.id)
             return False 
-        logger.info("Create issue in neo4j")
-        #        print(self)
-        #        self.debug_dump()
+        logger.info("Create issue in neo4j: %i", self.id)
         query, values = self.build_neo4j_query_and_values()
         with neo4jdb.session() as session:
             try:
                 result = session.run(query, values)
                 node_issue = result.single()
-            finally:
-                session.close()
+            except Exception as v:
+                logger.error("ERROR %i, %s", self.id, v)
+                session.close() 
+                return 
+            session.close()
         self.join_messages_to_issue(neo4jdb)
+        self.join_attachments_to_issue(neo4jdb) 
             
     def build_neo4j_query_and_values(self):
         q = Pypher()
@@ -206,15 +208,15 @@ class OdooIssue:
         self.join_description_to_query(q)
         cypher = str(q)
         params = q.bound_params
-        print("Pypher: ", cypher)
-        print("  with: ", params)
+        #print("Pypher: ", cypher)
+        #print("  with: ", params)
         return cypher, params 
 
     def join_partner_to_query(self, query):
         odoo_partner = self.issue['partner_id']
         if odoo_partner == False:
             return
-        print('PA: ', odoo_partner)
+        #print('PA: ', odoo_partner)
         query.MERGE.node('part', 'Partner', number = odoo_partner[0]).SET(
             __.part.__name__ == odoo_partner[1]
             )
@@ -224,7 +226,7 @@ class OdooIssue:
         odoo_analytic_account = self.issue['analytic_account_id']
         if odoo_analytic_account == False:
             return
-        print('AA: ', odoo_analytic_account) 
+        #print('AA: ', odoo_analytic_account) 
         query.MERGE.node('aa', 'AnalyticAccount', number = odoo_analytic_account[0]).SET(
             __.aa.__name__ == odoo_analytic_account[1]
             )
@@ -234,7 +236,7 @@ class OdooIssue:
         odoo_user = self.issue['user_id']
         if odoo_user == False:
             return
-        print('US: ', odoo_user)
+        #print('US: ', odoo_user)
         query.MERGE.node('u', 'User', number = odoo_user[0]).SET(
             __.u.__name__ == odoo_user[1]
             )
@@ -244,7 +246,7 @@ class OdooIssue:
         odoo_issue_stage = self.issue['issue_stage_id']
         if odoo_issue_stage == False:
             return
-        print('ST: ', odoo_issue_stage)
+        #print('ST: ', odoo_issue_stage)
         query.MERGE.node('st', 'Stage', number = odoo_issue_stage[0]).SET(
             __.st.__name__ == odoo_issue_stage[1]
             )
@@ -260,21 +262,30 @@ class OdooIssue:
         ohp.close() 
         t = ohp.text
 
-        print('DE: ', t)
-        print('--')
-        query.MERGE.node('de', 'DESCRIPTION', number = self.id).SET(
+        #print('DE: ', t)
+        #print('--')
+        query.MERGE.node('de', 'Description', number = self.id).SET(
             __.de.__description__ == t
             )
         query.MERGE.node('i').rel_out(labels='DESCRIPTION').node('de')
 
-    def join_messages_to_issue(self, session):
+    def join_messages_to_issue(self, neo4jdb):
         msgids = self.issue['message_ids']
-        print('MSGS: ', msgids) 
+        #print('MSGS: ', msgids) 
         for id in msgids:
             msg = OdooMessage(self, id)
-            msg.join_to_issue(session)
+            msg.join_to_issue(neo4jdb)
             # break 
 
+    def join_attachments_to_issue(self, neo4jdb):
+        logger.debug("Join Attachments")
+        l = OdooAttachments(self.odoo_info, self)
+        #print('ATTS: ', l) 
+        for a in l:
+            attachment = OdooAttachment(self.odoo_info, self, a)
+            attachment.join_to_issue(neo4jdb)
+
+            
         
 # the attachments with the issue can be found by: 
 # resource model = project.issue
