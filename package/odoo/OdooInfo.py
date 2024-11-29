@@ -17,7 +17,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 class OdooInfo:
-    def __init__(self, db, username, password, host):
+    def __init__(self, db, username, password, host, debug_limit=None):
         self.db = db
         self.username = username 
         self.password = password
@@ -26,7 +26,7 @@ class OdooInfo:
         self.uid = False
         self.odoo_version = False 
         self.authenticate()
-        self.debug_limit = None
+        self.debug_limit = debug_limit
         logger.info("Initialized Odoo Connection")
         logger.debug('Connected to: %s', self.url)
 
@@ -76,3 +76,10 @@ class OdooInfo:
                                        model, 'check_access_rights', domain,
                                        {'raise_exception': False})
         return result
+
+    def kw_create(self, model, domain):
+        with ServerProxy(self.url + 'object') as models: 
+            result_list = models.execute_kw(self.db, self.uid, self.password,
+                                            model, 'create', domain)
+        return result_list 
+        

@@ -169,4 +169,7 @@ secrets.py
 output/
 log/
 #*
+\#*
+.#*
 odoo-export.zip
+filter/

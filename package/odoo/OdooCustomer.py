@@ -17,26 +17,23 @@ import logging
 #from .OdooAttachment import OdooAttachment
 #from ..neo4j.Neo4jDB import Neo4jDB
 #from pypher import Pypher, __
+from .OdooObject import OdooObject 
 
 logger = logging.getLogger(__name__)
 
-class OdooCustomer:
+class OdooCustomer(OdooObject):
     def __init__(self, odoo_info, id):
         logger.debug("Init Customer: %i", id)
-        self.id = id
-        self.odoo_info = odoo_info
+        OdooObject.__init__(self, odoo_info, id) 
         self.customer = self.get_from_odoo()
         self.folder = False
         self.attachments = False
-        if self.customer is False:
-            return 
-        
-    def __str__(self):
-        if self.customer != False:
-            title = self.customer['display_name']
-        else:
-            title = "empty/no-access"
-        return f"OdooCustomer with id: {self.id} - {title}"
+
+    def data(self):
+        return self.customer
+
+    def external_name(self):
+        return "Customer" 
         
     def get_from_odoo(self):
         try:
@@ -45,44 +42,55 @@ class OdooCustomer:
             logger.error("ERROR AUTHENTICATING %s", v)
             return False
 
-    def debug_dump(self, with_keys=True):
-        if self.customer == False:
-            print(self)
-            return
-        print("==========", self.id)
-        if with_keys:
-            for i_key in self.customer.keys():
-                print(i_key)
-        print("==========", self.id)
-        print(self)
-        print("==========", self.id)
-        for i_key in [
-                'display_name',
-                'active',
-                '__last_update', 
-                'is_company',
-                'id',
-                'supplier', 
-                'company_id',
-                'parent_id',
-                'child_ids',
-                'country_id',
-                'contract_ids',
-                'opportunity_ids',
-                'sale_order_ids',
-                'sale_order_count', 
-                'supplier_invoice_count',
-                'invoice_ids',
-                'total_invoiced',
-                'task_ids',
-                'task_count',
-                'issue_count']:
-            print(i_key, ": ", self.customer[i_key])
-        print("==========", self.id)
-        
-    def is_valid(self):
-        return self.customer != False 
-        
+    def alfa_keys(self):
+        return [
+            'id',
+            'display_name',
+            'name',
+            'email',  
+            'active',
+            'street',
+            'street2',
+            'street3',
+            'zip',
+            'website',
+            'city',
+            '__last_update', 
+            'is_company',
+            'supplier', 
+            'sale_order_count', 
+            'supplier_invoice_count',
+            'total_invoiced',
+            'task_count',
+            'issue_count'
+        ]
+
+    def boolean_field_keys(self):
+        return [
+            'active',
+            'is_company',
+            'supplier', 
+        ]
+    
+    def one_join_keys(self):
+        return [
+            'company_id',
+            'parent_id',
+            'state_id',
+            'country_id',
+        ]
+
+    def multi_join_keys(self):
+        return [
+            'child_ids',
+            'contract_ids',
+            'opportunity_ids',
+            'sale_order_ids',
+            'invoice_ids',
+            'task_ids',
+            'interest_ids'
+        ]
+
     # def write_to_text_file(self, folder, withAttachments=False):
     #     # folder is the folder to write the file to
     #     # subfoder div 100?!? (only if needed)
@@ -357,3 +365,33 @@ class OdooCustomer:
     def count_relation_occurrence(self, i_key):
         v = self.customer[i_key]
         return len(v) 
+
+    def write_to_database_keys(self):
+        return [
+            'name',
+            'email',  
+            'active',
+            'is_company',
+            'street',
+            'street2',
+#            'street3',
+#            'state', 
+            'zip',
+            'city', 
+            'website'
+            
+#            'supplier', 
+#            'company_id',
+#            'parent_id'
+#            'country_id'
+        ]
+
+    def write_to_database(self, odoo_info):
+        field_list = self.compile_field_list() 
+        #try:
+        domain = [field_list] 
+        print(domain) 
+        return odoo_info.kw_create('res.partner', domain) 
+        #except Exception as v:
+        #    logger.error("ERROR AUTHENTICATING %s", v)
+        #    return False
