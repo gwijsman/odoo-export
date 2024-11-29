@@ -36,34 +36,42 @@ def main():
     outputfolder = os.getenv('TEXT_OUTPUT_FOLDER')
 
     # set to None for no limit: 
-    debug_limit = 15
+    debug_limit = 5
     odoo_in_info = OdooInfo(db, username, password, host, debug_limit)
     logger.debug("DB in connection: %s", odoo_in_info)
     odoo_out_info = OdooInfo(db_out, username_out, password_out, host_out)
     logger.debug("DB outin connection: %s", odoo_out_info)
 
     customerfilter = MigrationCustomerFilter()
-
-    print(customerfilter) 
+    customerfilter.start() 
     
-    odoo_customers = OdooCustomers(odoo_in_info, [[['is_company', '=', True], ['supplier', '=', False], ['active', '=', True], ['name', 'like', 'Enexis3']]])
+    odoo_customers = OdooCustomers(odoo_in_info, [[['is_company', '=', True], ['supplier', '=', False], ['active', '=', True], ['name', 'like', 'Enexis']]])
     for customer in odoo_customers:
-        
+        action, what = customerfilter.filter(customer)
         logger.debug(customer)
+        if action:
+            if what in ['delete', 'change']:
+                logger.info("Skip this customer: %i : %s", customer.id, customer)
         # customer.debug_dump()
         # customer.debug_dump_keys()
-        customer.write_to_database(odoo_out_info) 
-        # customer.debug_dump()
-        # customer.write_info_to_csv(f)
-        # exit()
-        #except Exception as v:
-        #logger.error("Failed writing to file: %s", v) 
-        #f.close() 
-        #logger.info("created file: %s", filename)
+#        customer.write_to_database(odoo_out_info) 
     logger.info("ODOO Export done.")
 
+def test():
+    class Base:
+        
+        def __init__(self):
+            print("Base initializer")
+
+    class Child(Base):
+        def __init__(self):
+            super().__init__()  # Calls the Base class __init__()
+            print("Child initializer")
+
+    obj = Child()
         
 if __name__ == "__main__":
     main()
+    #test()
 
     

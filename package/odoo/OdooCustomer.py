@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 class OdooCustomer(OdooObject):
     def __init__(self, odoo_info, id):
         logger.debug("Init Customer: %i", id)
-        OdooObject.__init__(self, odoo_info, id) 
+        super().__init__(odoo_info, id) 
         self.customer = self.get_from_odoo()
         self.folder = False
         self.attachments = False
