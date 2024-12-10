@@ -1,10 +1,10 @@
 #
-# OdooCustomers
+# OdooContacts
 #
-# wrapper with functionality specific for the customers list
+# wrapper with functionality specific for the contacts list
 # implemented an iter over the list
 #
-# domain could be: [[['is_company', '=', True]]]
+# domain could be: [[['is_company', '=', False]]]
 #
 # Gert Wijsman
 # November 2024
@@ -15,25 +15,25 @@
 
 import logging 
 from .OdooPartners import OdooPartners
-from .OdooCustomer import OdooCustomer
+from .OdooContact import OdooContact
 
 logger = logging.getLogger(__name__)
 
-class OdooCustomers(OdooPartners):
+class OdooContacts(OdooPartners):
 
     def __init__(self, odoo_info, domain=[[]]):
         super().__init__(odoo_info, domain)
         logger.debug(self.__str__())
 
     def __str__(self):
-        return f"OdooCustomers: List of {len(self.customers())} customers"
+        return f"OdooContacts: List of {len(self.contacts())} contacts"
 
-    def customers(self):
+    def contacts(self):
         return self.partners() 
 
-    def customerids(self):
+    def contactids(self):
         return self.partnerids() 
         
     def get_list_details(self):
-        for id in self.customerids():
-            self.customers().append(OdooCustomer(self.odoo_info, id))
+        for id in self.contactids():
+            self.contacts().append(OdooContact(self.odoo_info, id))

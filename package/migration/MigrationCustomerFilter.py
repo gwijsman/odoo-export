@@ -20,19 +20,23 @@ class MigrationCustomerFilter(MigrationFilter):
         super().__init__()
         self.csv_file = "customer-filter.csv"
         self.migfilter = {}
+        self.map_id = {}
 
     def start(self):
         self.read_csv()
 
     def filter(self, customer):
+        return self.filter_by_id(customer.id)
+
+    def filter_by_id(self, customer_id):
         action = None 
-        if customer.id in self.migfilter:
-            action = self.migfilter[customer.id]
+        if customer_id in self.migfilter:
+            action = self.migfilter[customer_id]
         if action is None:
-            logger.debug("No Action needed for: %s", customer)
+            logger.debug("No Action needed for: %s", customer_id)
             return False, None 
         else:
-            logger.debug("Action needed for: %s", customer)
+            logger.debug("Action needed for: %s", customer_id)
             logger.debug("Action: %s", action)
             return True, action 
 
@@ -44,5 +48,12 @@ class MigrationCustomerFilter(MigrationFilter):
                 key = int(row[0])
                 value = row[1].strip()
                 logger.debug("Added migration filter item for %i with action %s", key, value)
-                self.migfilter[key] = value 
+                self.migfilter[key] = value
+                value2 = row[2].strip()
+                self.map_id[key] = value2 
         
+    def new_value_for(self, key):
+        return self.migfilter[key] 
+
+    def new_id_for(self, key):
+        return self.map_id[key] 
