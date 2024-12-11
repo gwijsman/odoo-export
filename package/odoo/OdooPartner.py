@@ -189,31 +189,11 @@ class OdooPartner(OdooObject):
         field_list = self.compile_field_list() 
         #try:
         domain = [field_list] 
-        print(domain) 
+        # print(domain) 
         return odoo_info.kw_create('res.partner', domain) 
         #except Exception as v:
         #    logger.error("ERROR AUTHENTICATING %s", v)
         #    return False
-
-
-    def get_target_id(odoo_info, field, value):
-        # class method!
-        # odoo_info should be the target database!
-        print(field)
-        print(value)
-        domain = [[[field, '=', value]]]
-        print(domain) 
-        #try:
-        result_ids = odoo_info.kw_search_result('res.partner', domain)
-        print(result_ids)
-        return result_ids[0] 
-        #except Exception as v:
-        #    logger.error("ERROR AUTHENTICATING %s", v)
-        #    return False
-        result = odoo_info.kw_read_result('res.partner', [result_ids[0]])
-        print(result)
-        return result 
-
 
     # def write_to_text_file(self, folder, withAttachments=False):
     #     # folder is the folder to write the file to

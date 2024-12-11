@@ -21,6 +21,7 @@ class MigrationCustomerFilter(MigrationFilter):
         self.csv_file = "customer-filter.csv"
         self.migfilter = {}
         self.map_id = {}
+        self.new_id = {}
 
     def start(self):
         self.read_csv()
@@ -57,3 +58,14 @@ class MigrationCustomerFilter(MigrationFilter):
 
     def new_id_for(self, key):
         return self.map_id[key] 
+
+    def set_new_odoo_id_for(self, key, nid):
+        self.new_id[key] = nid
+
+    def get_new_odoo_id_for(self, key):
+        if key in self.new_id.keys():
+            nid = self.new_id[key]
+        else:
+            nid = None 
+        return nid 
+        
