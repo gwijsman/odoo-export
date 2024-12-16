@@ -12,7 +12,6 @@ import os
 import logging
 from dotenv import load_dotenv
 from package.odoo.OdooInfo import OdooInfo
-
 from package.migration.Migration import Migration
 from package.ImportLogging import setup_logging 
 
@@ -36,7 +35,8 @@ def main():
     outputfolder = os.getenv('TEXT_OUTPUT_FOLDER')
 
     # set to None for no limit: 
-    debug_limit = 30
+    debug_limit = None
+    debug_limit = 250
     odoo_in_info = OdooInfo(db, username, password, host, debug_limit)
     logger.debug("DB in connection: %s", odoo_in_info)
     odoo_out_info = OdooInfo(db_out, username_out, password_out, host_out)

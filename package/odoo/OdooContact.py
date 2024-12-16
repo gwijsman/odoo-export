@@ -12,17 +12,13 @@
 #
 
 import logging
-#from .OdooHTMLParser import OdooHTMLParser
-#from .OdooAttachments import OdooAttachments
-#from .OdooAttachment import OdooAttachment
-#from ..neo4j.Neo4jDB import Neo4jDB
-#from pypher import Pypher, __
 from .OdooPartner import OdooPartner
 from .OdooCustomer import OdooCustomer 
+from ..sqlite.SqliteObject import SqliteObject
 
 logger = logging.getLogger(__name__)
 
-class OdooContact(OdooPartner):
+class OdooContact(OdooPartner, SqliteObject):
     def __init__(self, odoo_info, id):
         logger.debug("Init Contact: %i", id)
         super().__init__(odoo_info, id)
@@ -54,7 +50,40 @@ class OdooContact(OdooPartner):
         return OdooCustomer(self.odoo_info, parent_id) 
 
     def get_join_info(self, odoo_out_info):
-        self.company = self.get_company(self.data()['parent_id'][0])
-        name = self.company.data()['name'] 
-        target_id = OdooCustomer.get_target_id(odoo_out_info, 'name', name)
+        write("FIXME") 
+        #self.company = self.get_company(self.data()['parent_id'][0])
+        #name = self.company.data()['name'] 
+        #target_id = OdooCustomer.get_target_id(odoo_out_info, 'name', name)
+        if not self.data()['parent_id']: 
+            pid = self.data()['parent_id'][0]
+            p = OdooCustomer()
+
+        
         self.data()['parent_id'] = target_id 
+
+    def sqlite_table_name(self):
+        return 'contact'
+
+    def sqlite_id(self):
+        return self.id
+
+    def sqlite_name(self):
+        return self.data()['name'] 
+
+    def sqlite_migrated(self):
+        if 'migrated2025' in self.data().keys():
+            return self.data()['migrated2025']
+        else:
+            return False 
+
+    def sqlite_reason(self):
+        if 'reasonmigration2025' in self.data().keys():
+            return self.data()['reasonmigration2025']
+        else:
+            return False 
+
+    def sqlite_to_id(self):
+        if 'toid2025' in self.data().keys():
+            return self.data()['toid2025']
+        else:
+            return False 

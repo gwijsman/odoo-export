@@ -27,6 +27,7 @@ class OdooInfo:
         self.odoo_version = False 
         self.authenticate()
         self.debug_limit = debug_limit
+        self.cache_db = False 
         logger.info("Initialized Odoo Connection")
         logger.debug('Connected to: %s', self.url)
 

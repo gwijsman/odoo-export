@@ -17,17 +17,19 @@ import logging
 #from .OdooAttachment import OdooAttachment
 #from ..neo4j.Neo4jDB import Neo4jDB
 #from pypher import Pypher, __
-from .OdooObject import OdooObject 
+from package.odoo.OdooObject import OdooObject 
+from package.sqlite.SqliteObject import SqliteObject
 
 logger = logging.getLogger(__name__)
 
-class OdooPartner(OdooObject):
+class OdooPartner(OdooObject, SqliteObject):
     def __init__(self, odoo_info, id):
         logger.debug("Init Partner: %i", id)
         super().__init__(odoo_info, id) 
         self.partner = self.get_from_odoo()
         self.folder = False
         self.attachments = False
+        self.set_cached_record() 
 
     def data(self):
         return self.partner
@@ -36,6 +38,9 @@ class OdooPartner(OdooObject):
         return "Partner" 
         
     def get_from_odoo(self):
+        cr = self.get_cached_record()
+        if cr != False:
+            return cr 
         try:
             return self.odoo_info.kw_read_result('res.partner', [self.id])
         except Exception as v:
@@ -48,7 +53,6 @@ class OdooPartner(OdooObject):
             'display_name',
             'name',
             'email',  
-            'active',
             'street',
             'street2',
             'street3',
@@ -56,8 +60,6 @@ class OdooPartner(OdooObject):
             'website',
             'city',
             '__last_update', 
-            'is_company',
-            'supplier', 
             'sale_order_count', 
             'supplier_invoice_count',
             'total_invoiced',
@@ -69,7 +71,8 @@ class OdooPartner(OdooObject):
         return [
             'active',
             'is_company',
-            'supplier', 
+            'supplier',
+            'employee'
         ]
     
     def one_join_keys(self):
@@ -189,8 +192,12 @@ class OdooPartner(OdooObject):
         field_list = self.compile_field_list() 
         #try:
         domain = [field_list] 
-        # print(domain) 
-        return odoo_info.kw_create('res.partner', domain) 
+        # print(domain)
+        result = odoo_info.kw_create('res.partner', domain)
+        self.data()['toid2025'] = result
+        self.data()['migrated2025'] = True
+        self.set_cached_record() 
+        return result 
         #except Exception as v:
         #    logger.error("ERROR AUTHENTICATING %s", v)
         #    return False
@@ -389,11 +396,12 @@ class OdooPartner(OdooObject):
 
             
         
-# the attachments with the issue can be found by: 
-# resource model = project.issue
-# resource id = de id van het issue
-# (resource name is teh title string of the issue) 
+    # the attachments with the issue can be found by: 
+    # resource model = project.issue
+    # resource id = de id van het issue
+    # (resource name is teh title string of the issue) 
+    
+    # table: ir.attachment
+    # field: res_model (char)
+    # field: res_id (int) 
 
-# table: ir.attachment
-# field: res_model (char)
-# field: res_id (int) 

@@ -52,7 +52,7 @@ class OdooObject:
         print(self)
 
     def keys_to_dump(self):
-        return self.alfa_keys() + self.one_join_keys() + self.multi_join_keys() 
+        return self.alfa_keys() + self.boolean_field_keys() + self.one_join_keys() + self.multi_join_keys() 
     
     def alfa_keys(self):
         return [

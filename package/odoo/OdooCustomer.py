@@ -12,11 +12,6 @@
 #
 
 import logging
-#from .OdooHTMLParser import OdooHTMLParser
-#from .OdooAttachments import OdooAttachments
-#from .OdooAttachment import OdooAttachment
-#from ..neo4j.Neo4jDB import Neo4jDB
-#from pypher import Pypher, __
 from .OdooPartner import OdooPartner
 
 logger = logging.getLogger(__name__)
@@ -111,3 +106,29 @@ class OdooCustomer(OdooPartner):
 #            'country_id'
         ]
 
+    def sqlite_table_name(self):
+        return 'customer'
+
+    def sqlite_id(self):
+        return self.id
+
+    def sqlite_name(self):
+        return self.data()['name'] 
+
+    def sqlite_migrated(self):
+        if 'migrated2025' in self.data().keys():
+            return self.data()['migrated2025']
+        else:
+            return False 
+
+    def sqlite_reason(self):
+        if 'reasonmigration2025' in self.data().keys():
+            return self.data()['reasonmigration2025']
+        else:
+            return False 
+
+    def sqlite_to_id(self):
+        if 'toid2025' in self.data().keys():
+            return self.data()['toid2025']
+        else:
+            return False 
