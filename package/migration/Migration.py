@@ -37,6 +37,7 @@ class Migration:
         domain = [
             [
                 ['is_company', '=', True],
+                ['customer', '=', True], 
                 ['supplier', '=', False],
                 ['active', '=', True],
                 # ['name', 'like', 'American']
@@ -70,6 +71,7 @@ class Migration:
         domain = [
             [
                 ['is_company', '=', False],
+                ['customer', '=', True], 
                 ['supplier', '=', False],
                 ['active', '=', True],
                 # ['parent_id', '=', 762],
