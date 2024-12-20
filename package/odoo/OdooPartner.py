@@ -17,16 +17,21 @@ import logging
 #from .OdooAttachment import OdooAttachment
 #from ..neo4j.Neo4jDB import Neo4jDB
 #from pypher import Pypher, __
-from package.odoo.OdooObject import OdooObject 
-from package.sqlite.SqliteObject import SqliteObject
+from .OdooObject import OdooObject 
+from .OdooFinders import OdooFinders
+from .OdooCountryFinder import OdooCountryFinder
+from ..sqlite.SqliteObject import SqliteObject
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 class OdooPartner(OdooObject, SqliteObject):
     def __init__(self, odoo_info, id):
         logger.debug("Init Partner: %i", id)
         super().__init__(odoo_info, id) 
         self.partner = self.get_from_odoo()
+        if type(self.partner) == list:
+            self.partner = self.partner[0]
         self.folder = False
         self.attachments = False
         self.set_cached_record() 
@@ -176,16 +181,16 @@ class OdooPartner(OdooObject, SqliteObject):
             'is_company',
             'street',
             'street2',
-#            'street3',
-#            'state', 
             'zip',
             'city', 
-            'website'
+            'website', 
+            'lang',
             
 #            'supplier', 
 #            'company_id',
 #            'parent_id'
-#            'country_id'
+            'country_id',
+            'country_code', 
         ]
 
     def write_to_database(self, odoo_info):
@@ -201,6 +206,35 @@ class OdooPartner(OdooObject, SqliteObject):
         #except Exception as v:
         #    logger.error("ERROR AUTHENTICATING %s", v)
         #    return False
+
+    def delete_from_database(self, odoo_info):
+        #try:
+        domain = [[['id', '=', self.id]]]
+        domain = [[self.id]]
+        print(domain)
+        result = odoo_info.kw_delete('res.partner', domain)
+        print("Result delete: ", result)
+        return result 
+
+    def calculate_one_join_field(self, key, value):
+        if key == 'parent_id':
+            return value
+        elif key == 'country_id':
+            if value is False:
+                return False 
+            #OdooFinders.show_finders() 
+            countryfinder = OdooFinders.get_finder('country')
+            id = countryfinder.get_country_id_for_id(value[0])
+            return id 
+        elif key == 'state_id':
+            if value is False:
+                return False 
+            #OdooFinders.show_finders() 
+            statefinder = OdooFinders.get_finder('state')
+            id = statefinder.get_state_id_for_id(value[0])
+            return id 
+            
+        return super().calculate_one_join_field(key, value)
 
     # def write_to_text_file(self, folder, withAttachments=False):
     #     # folder is the folder to write the file to

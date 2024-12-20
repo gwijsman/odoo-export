@@ -87,6 +87,8 @@ class SqliteObject:
         # rerurns a dictionary with the values otherwise retrieved from ODOO
         #
         cdb = self.odoo_info.cache_db
+        if cdb == False: 
+            return False 
         try:
             sql = "SELECT * FROM %s WHERE id = %i"%(self.sqlite_table_name(), self.id)
             result = cdb.exec_sql(sql)
@@ -109,4 +111,6 @@ class SqliteObject:
         # store self in the cache database
         # 
         cdb = self.odoo_info.cache_db
+        if cdb == False: 
+            return 
         self.store_in_sqlite(cdb)

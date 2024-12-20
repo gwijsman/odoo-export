@@ -89,7 +89,14 @@ class OdooObject:
             value = self.data()[i_key]
             if (value == False) and not(i_key in self.boolean_field_keys()):
                 continue 
+            elif i_key in self.one_join_keys():
+                newid = self.calculate_one_join_field(i_key, value)
+                if newid == False:
+                    continue
+                field_list[i_key] = newid 
             else:
                 field_list[i_key] = value 
         return field_list 
     
+    def calculate_one_join_field(self, key, value):
+        return False 
