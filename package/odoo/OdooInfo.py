@@ -84,3 +84,9 @@ class OdooInfo:
                                             model, 'create', domain)
         return result_list 
         
+    def kw_delete(self, model, domain):
+        with ServerProxy(self.url + 'object') as models: 
+            result_list = models.execute_kw(self.db, self.uid, self.password,
+                                            model, 'unlink', domain)
+        return result_list 
+        

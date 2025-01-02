@@ -24,10 +24,13 @@ class MigrationCustomerFilter(MigrationFilter):
         self.migfilter = {}
         self.map_id = {}
         
-    def start(self, odoo_info, sqlitedb):
+    def start(self, odoo_info):
         self.odoo_info = odoo_info
-        self.sdb = sqlitedb 
+        self.sdb = odoo_info.cache_db
         self.read_csv()
+
+    def set_contact_filter(self, cf):
+        self.contact_filter = cf
 
     def filter(self, customer):
         # return action needed and what action
@@ -42,24 +45,18 @@ class MigrationCustomerFilter(MigrationFilter):
             self.set_migration_reason(customer, "mapaction"+what[0]) 
             return True, what 
         
-        if self.has_relevant_tag(customer):
-            return False, None
-        # does this customer has some connected objects in ODOO?
-        # which:
-        # * invoices
+        if self.has_relevant_contact(customer):
+            return False, None 
+
         if self.has_invoices(customer):
             return False, None
             
-        # * tasks and issues (shorter than 5 years)
         if self.has_tasks_or_issues(customer):
             return False, None
         
-        # * contacts changed within 5 years
-        # does this customer had some related action after some date
         if self.has_recent_changes(customer):
             return False, None
 
-        # mark the record as skipped when not migrated (not in the filter...)
         self.set_migration_reason(customer, "delete")
         return True, ['delete']
 
@@ -93,8 +90,7 @@ class MigrationCustomerFilter(MigrationFilter):
     def new_value_for(self, key):
         return self.migfilter[key] 
 
-    def has_relevant_tag(self, customer):
-        relevant_tags = [48,49,64,18,65,44,45,46,17,55,9,25,53]
+    def has_relevant_contact(self, customer):
         cuid = customer.id 
         domain = [
             [
@@ -106,12 +102,15 @@ class MigrationCustomerFilter(MigrationFilter):
         ]
         odoo_contacts = OdooContacts(self.odoo_info, domain) 
         for contact in odoo_contacts:
-            logger.debug("Relevant? : %s", contact)
-            for tag_id in contact.data()['category_id']:
-                if tag_id in relevant_tags:
-                    has_tag = True
-                    self.set_migration_reason(customer, 'tag %i'%tag_id) 
-                    return True
+            logger.debug("Relevant contact? : %s", contact)
+            action, what = self.contact_filter.filter(contact)
+            if action == False: 
+                self.set_migration_reason(customer, 'customer %i'%(contact.id)) 
+                return True
+            else:
+                if not (what[0] in ['delete', 'change']):
+                    # migrate the contact so the customer 
+                    return True 
         return False 
 
     def has_invoices(self, customer):
@@ -161,10 +160,11 @@ class MigrationCustomerFilter(MigrationFilter):
         # s string in ODOO time format: 2016-07-02 08:13:24
         #
         five_year = time.strptime("01/01/2019", "%d/%m/%Y")
-        date = time.strptime(s, "%Y-%m-%d %H:%M:%S")
-        return date > five_year 
-              
-        
+        #print("five: ", strftime("%Y-%m-%d %H:%M:%S", five_year))
+        cdate = time.strptime(s, "%Y-%m-%d %H:%M:%S")
+        #print("current: ", strftime("%Y-%m-%d %H:%M:%S", cdate))
+        #print("relevant? : ", (cdate > five_year))
+        return cdate > five_year 
     
     def set_migration_reason(self, customer, reason):
         customer.data()['reasonmigration2025'] = reason 

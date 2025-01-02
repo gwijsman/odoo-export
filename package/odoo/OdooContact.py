@@ -34,32 +34,35 @@ class OdooContact(OdooPartner, SqliteObject):
             'is_company',
             'street',
             'street2',
-#            'street3',
-#            'state', 
             'zip',
             'city', 
             'website',
-            
-#            'supplier', 
+            'function',
+            'title',
+            'mobile',
+            'phone',
 #            'company_id',
-            'parent_id'
-#            'country_id'
+            'parent_id',
+            'country_id',
+            'state_id', 
+            'lang',
+            'category_id'
         ]
 
     def get_company(self, parent_id):
         return OdooCustomer(self.odoo_info, parent_id) 
 
-    def get_join_info(self, odoo_out_info):
-        write("FIXME") 
-        #self.company = self.get_company(self.data()['parent_id'][0])
-        #name = self.company.data()['name'] 
-        #target_id = OdooCustomer.get_target_id(odoo_out_info, 'name', name)
-        if not self.data()['parent_id']: 
-            pid = self.data()['parent_id'][0]
-            p = OdooCustomer()
+    # def get_join_info(self, odoo_out_info):
+    #     print("FIXME") 
+    #     #self.company = self.get_company(self.data()['parent_id'][0])
+    #     #name = self.company.data()['name'] 
+    #     #target_id = OdooCustomer.get_target_id(odoo_out_info, 'name', name)
+    #     if not self.data()['parent_id']: 
+    #         pid = self.data()['parent_id'][0]
+    #         p = OdooCustomer()
 
-        
-        self.data()['parent_id'] = target_id 
+    #     target_id = 0 
+    #     self.data()['parent_id'] = target_id 
 
     def sqlite_table_name(self):
         return 'contact'

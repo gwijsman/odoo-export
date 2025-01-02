@@ -94,16 +94,18 @@ class OdooCustomer(OdooPartner):
             'is_company',
             'street',
             'street2',
-#            'street3',
-#            'state', 
             'zip',
             'city', 
-            'website'
+            'website',
+            'country_id',
+            'state_id',
+            'lang',
+            'phone',
+            'category_id', 
+#            'country_code', 
             
-#            'supplier', 
 #            'company_id',
 #            'parent_id'
-#            'country_id'
         ]
 
     def sqlite_table_name(self):
