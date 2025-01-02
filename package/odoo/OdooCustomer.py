@@ -99,7 +99,9 @@ class OdooCustomer(OdooPartner):
             'website',
             'country_id',
             'state_id',
-            'lang'
+            'lang',
+            'phone',
+            'category_id', 
 #            'country_code', 
             
 #            'company_id',

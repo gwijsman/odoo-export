@@ -86,6 +86,7 @@ class OdooPartner(OdooObject, SqliteObject):
             'parent_id',
             'state_id',
             'country_id',
+            'title',
         ]
 
     def multi_join_keys(self):
@@ -96,7 +97,8 @@ class OdooPartner(OdooObject, SqliteObject):
             'sale_order_ids',
             'invoice_ids',
             'task_ids',
-            'interest_ids'
+            'interest_ids',
+            'category_id',
         ]
 
 
@@ -174,6 +176,7 @@ class OdooPartner(OdooObject, SqliteObject):
         return len(v) 
 
     def write_to_database_keys(self):
+        # please look at the child definition 
         return [
             'name',
             'email',  
@@ -185,12 +188,13 @@ class OdooPartner(OdooObject, SqliteObject):
             'city', 
             'website', 
             'lang',
-            
+            'title', 
 #            'supplier', 
 #            'company_id',
 #            'parent_id'
             'country_id',
             'country_code', 
+
         ]
 
     def write_to_database(self, odoo_info):
@@ -233,8 +237,28 @@ class OdooPartner(OdooObject, SqliteObject):
             statefinder = OdooFinders.get_finder('state')
             id = statefinder.get_state_id_for_id(value[0])
             return id 
-            
+        elif key == 'title':
+            if value is False:
+                return False 
+            #OdooFinders.show_finders() 
+            titlefinder = OdooFinders.get_finder('title')
+            id = titlefinder.get_title_id_for_id(value[0])
+            return id 
         return super().calculate_one_join_field(key, value)
+
+    def calculate_multi_join_field(self, key, value):
+        # return a new list of ids for the new db
+        # return false if noting to do 
+        if key is 'category_id':
+            nvalue = []
+            categoryfinder = OdooFinders.get_finder('category')
+            for oid in value:
+                nid = categoryfinder.get_category_id_for_id(oid)
+                if not nid is False:
+                    nvalue.append(nid)
+            nvalue.append(categoryfinder.get_migration_category())
+            return nvalue
+        return False
 
     # def write_to_text_file(self, folder, withAttachments=False):
     #     # folder is the folder to write the file to

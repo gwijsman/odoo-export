@@ -91,12 +91,18 @@ class OdooObject:
                 continue 
             elif i_key in self.one_join_keys():
                 newid = self.calculate_one_join_field(i_key, value)
-                if newid == False:
-                    continue
-                field_list[i_key] = newid 
+                if newid != False:
+                    field_list[i_key] = newid 
+            elif i_key in self.multi_join_keys():
+                newidlist = self.calculate_multi_join_field(i_key, value)
+                if not newidlist is False:
+                    field_list[i_key] = [(6, 0, newidlist)]
             else:
                 field_list[i_key] = value 
         return field_list 
     
     def calculate_one_join_field(self, key, value):
+        return False 
+
+    def calculate_multi_join_field(self, key, value):
         return False 

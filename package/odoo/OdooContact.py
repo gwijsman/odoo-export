@@ -37,12 +37,16 @@ class OdooContact(OdooPartner, SqliteObject):
             'zip',
             'city', 
             'website',
+            'function',
+            'title',
+            'mobile',
+            'phone',
 #            'company_id',
             'parent_id',
             'country_id',
             'state_id', 
             'lang',
-
+            'category_id'
         ]
 
     def get_company(self, parent_id):
