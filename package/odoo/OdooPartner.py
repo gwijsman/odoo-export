@@ -12,7 +12,7 @@
 #
 
 import logging
-#from .OdooHTMLParser import OdooHTMLParser
+from .OdooHTMLParser import OdooHTMLParser
 #from .OdooAttachments import OdooAttachments
 #from .OdooAttachment import OdooAttachment
 #from ..neo4j.Neo4jDB import Neo4jDB
@@ -194,10 +194,11 @@ class OdooPartner(OdooObject, SqliteObject):
 #            'parent_id'
             'country_id',
             'country_code', 
-
+        # please look at the child definition!
         ]
 
     def write_to_database(self, odoo_info):
+        self.correct_comment_field() 
         field_list = self.compile_field_list() 
         #try:
         domain = [field_list] 
@@ -259,6 +260,15 @@ class OdooPartner(OdooObject, SqliteObject):
             nvalue.append(categoryfinder.get_migration_category())
             return nvalue
         return False
+
+    def correct_comment_field(self):
+        comment = self.data()['comment']
+        s = comment.split('\n')
+        #comment2 = ""
+        #for l in s:
+        #    comment2 = comment2 + '<p>' + l + '</p>'
+        comment2 = comment.replace('\n', '<br>')
+        self.data()['comment'] = comment2
 
     # def write_to_text_file(self, folder, withAttachments=False):
     #     # folder is the folder to write the file to

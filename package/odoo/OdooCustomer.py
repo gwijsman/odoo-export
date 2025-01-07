@@ -102,6 +102,7 @@ class OdooCustomer(OdooPartner):
             'lang',
             'phone',
             'category_id', 
+            'comment', 
 #            'country_code', 
             
 #            'company_id',

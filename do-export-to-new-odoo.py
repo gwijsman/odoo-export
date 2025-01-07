@@ -36,7 +36,7 @@ def main():
 
     # set to None for no limit: 
     debug_limit = None
-    # debug_limit = 250
+    #debug_limit = 30
     odoo_in_info = OdooInfo(db, username, password, host, debug_limit)
     logger.debug("DB in connection: %s", odoo_in_info)
     odoo_out_info = OdooInfo(db_out, username_out, password_out, host_out)

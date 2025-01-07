@@ -11,6 +11,7 @@ import os
 from package.odoo.OdooCustomers import OdooCustomers
 from package.odoo.OdooContacts import OdooContacts 
 from package.odoo.OdooCustomer import OdooCustomer
+from package.odoo.OdooProjects import OdooProjects
 from package.odoo.OdooFinders import OdooFinders 
 from package.migration.MigrationCustomerFilter import MigrationCustomerFilter
 from package.migration.MigrationContactFilter import MigrationContactFilter
@@ -162,9 +163,57 @@ class Migration:
                 
             contact.write_to_database(self.odoo_out_info)
         
+    def migrate_projects(self):
+        domain = [
+            [
+                ['state', '=', 'open'],
+                #['analytic_account_id', ]
+                #['customer', '=', True], 
+                # ['supplier', '=', False], ==> not valid because for example Vitens is supplier too?!?
+                #['active', '=', True],
+                # ['name', 'like', 'American']
+                #['id', '=', 693]
+                # ['id', '=', 363] 
+                # ['id', '=', 438] 
+                # ['name', 'like', 'Enexis']
+            ]
+        ]
+        odoo_projects = OdooProjects(self.odoo_in_info, domain)
+        outputfolder = os.getenv('TEXT_OUTPUT_FOLDER')
+        filename = outputfolder + '/projects.csv'
+        try:
+            f = open(filename, 'w') # replace with 'x' later (when no overwriting needed!) 
+        except Exception:
+            logger.error("Failed opening file: %s", filename)
+            exit(1) 
+        for project in odoo_projects:
+            logger.debug(project)
+            if project.already_migrated():
+                logger.warning("Already migrated project for %i", project.id)
+                # continue 
+            #action, what = self.projectfilter.filter(project)
+            #if action:
+            #    if what[0] in ['delete']:
+            #        logger.info("Skip this project: %i : %s", project.id, project)
+            #        project.set_cached_record() 
+            #        continue 
+            #    if what[0] in ['change']:
+            #        logger.info("Skip this project: %i : %s", project.id, project)
+            #        project.data()['mappedinid2025'] = what[1]
+            #        project.data()['migrated2025'] = True 
+            #        project.set_cached_record() 
+            #        continue 
+            #project.debug_dump()
+            #project.debug_dump_keys()
+            # nid = project.write_to_database(self.odoo_out_info)
+            #project.report() 
+            project.write_info_to_csv(f)
+        f.close() 
+
     def do(self):
         self.check_config_target_db()
         self.initialize()
-        self.migrate_customers()
-        self.migrate_contacts() 
+        #self.migrate_customers()
+        #self.migrate_contacts() 
+        self.migrate_projects()
 
