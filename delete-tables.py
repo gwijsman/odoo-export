@@ -1,6 +1,7 @@
 #
 # delete added record in test database
 #
+#
 # Gert Wijsman
 # December 2024
 #
@@ -14,6 +15,7 @@ from package.odoo.OdooCustomers import OdooCustomers
 from package.odoo.OdooContacts import OdooContacts 
 from package.odoo.OdooCustomer import OdooCustomer
 from package.odoo.OdooContact import OdooContact
+from package.odoo.OdooProduct import OdooProduct
 from package.sqlite.SqliteDB import SqliteDB
 
 def show_info(odoo_out_info):
@@ -79,6 +81,31 @@ def delete_contacts(odoo_out_info):
         print("Delete: ", contact)
         contact.delete_from_database(odoo_out_info) 
 
+def delete_products(odoo_out_info):
+    domain = [
+        [
+            ['active', '=', True],
+        ]    
+    ]
+    print(domain)
+    ids = odoo_out_info.kw_search_result('product.product', domain)
+    print(ids)
+    for id in ids:
+        product = OdooProduct(odoo_out_info, id)
+        print(product)
+        #jo = json.dumps(product.data())
+        #print('=====')
+        #print(jo)
+        #print('=====')
+        #exit()
+#        if product.id in [3, 7, 8]:
+#            continue 
+        print("Delete: ", product)
+        try:
+            product.delete_from_database(odoo_out_info) 
+        except Exception as v:
+            print("ERROR DELETING %s", product)
+
 def main():
     load_dotenv()
     
@@ -105,9 +132,9 @@ def main():
     sdb.initialize_db()
     odoo_in_info.cache_db = sdb 
 
-    delete_contacts(odoo_out_info)
-    delete_customers(odoo_out_info)
-    # show_info(odoo_out_info)
+    #delete_contacts(odoo_out_info)
+    #delete_customers(odoo_out_info)
+    #delete_products(odoo_out_info)
 
 if __name__ == "__main__":
     main()

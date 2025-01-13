@@ -12,9 +12,11 @@ from package.odoo.OdooCustomers import OdooCustomers
 from package.odoo.OdooContacts import OdooContacts 
 from package.odoo.OdooCustomer import OdooCustomer
 from package.odoo.OdooProjects import OdooProjects
+from package.odoo.OdooSalesOrders import OdooSalesOrders
 from package.odoo.OdooFinders import OdooFinders 
 from package.migration.MigrationCustomerFilter import MigrationCustomerFilter
 from package.migration.MigrationContactFilter import MigrationContactFilter
+from package.migration.MigrationProjectFilter import MigrationProjectFilter
 from package.sqlite.SqliteDB import SqliteDB
 
 logger = logging.getLogger(__name__)
@@ -37,6 +39,9 @@ class Migration:
         self.customerfilter = MigrationCustomerFilter()
         self.customerfilter.start(self.odoo_in_info) 
         self.customerfilter.set_contact_filter(self.contactfilter)
+
+        self.projectfilter = MigrationProjectFilter()
+        self.projectfilter.start(self.odoo_in_info) 
 
         OdooFinders.initialize(self.odoo_in_info, self.odoo_out_info)  
 
@@ -172,7 +177,7 @@ class Migration:
                 # ['supplier', '=', False], ==> not valid because for example Vitens is supplier too?!?
                 #['active', '=', True],
                 # ['name', 'like', 'American']
-                #['id', '=', 693]
+                # ['id', '=', 634]
                 # ['id', '=', 363] 
                 # ['id', '=', 438] 
                 # ['name', 'like', 'Enexis']
@@ -190,7 +195,63 @@ class Migration:
             logger.debug(project)
             if project.already_migrated():
                 logger.warning("Already migrated project for %i", project.id)
-                # continue 
+                continue 
+            #action, what = self.projectfilter.filter(project)
+            #if action: 
+            #    print("-->", action, " -- ", what)
+            #    mig_code = what[0]
+            #    if mig_code in ['c', 'p', '1RW', 'n']:
+            #        print("create a project: ", project)
+            #    elif mig_code in ['s']:
+            #        print("create a subscription: ", project)
+            #    else:
+            #        logger.error("Unknown migration code for project: %s", project)
+            #if action:
+            #    if what[0] in ['delete']:
+            #        logger.info("Skip this project: %i : %s", project.id, project)
+            #        project.set_cached_record() 
+            #        continue 
+            #    if what[0] in ['change']:
+            #        logger.info("Skip this project: %i : %s", project.id, project)
+            #        project.data()['mappedinid2025'] = what[1]
+            #        project.data()['migrated2025'] = True 
+            #        project.set_cached_record() 
+            #        continue 
+            #project.debug_dump()
+            #project.debug_dump_keys()
+            nid = project.write_to_database(self.odoo_out_info)
+            #project.report() 
+            project.write_info_to_csv(f)
+        f.close() 
+
+    def migrate_sales_orders(self):
+        domain = [
+            [
+                #['state', '=', 'open'],
+                #['analytic_account_id', ]
+                #['customer', '=', True], 
+                # ['supplier', '=', False], ==> not valid because for example Vitens is supplier too?!?
+                #['active', '=', True],
+                # ['name', 'like', 'American']
+                ['id', '=', 772]
+                # ['id', '=', 663] 
+                # ['id', '=', 438] 
+                # ['name', 'like', 'Enexis']
+            ]
+        ]
+        odoo_sales_orders = OdooSalesOrders(self.odoo_in_info, domain)
+        outputfolder = os.getenv('TEXT_OUTPUT_FOLDER')
+        filename = outputfolder + '/sales_orders.csv'
+        try:
+            f = open(filename, 'w') # replace with 'x' later (when no overwriting needed!) 
+        except Exception:
+            logger.error("Failed opening file: %s", filename)
+            exit(1) 
+        for sales_order in odoo_sales_orders:
+            logger.debug(sales_order)
+            if sales_order.already_migrated():
+                logger.warning("Already migrated sales_order for %i", sales_order.id)
+                continue 
             #action, what = self.projectfilter.filter(project)
             #if action:
             #    if what[0] in ['delete']:
@@ -205,9 +266,9 @@ class Migration:
             #        continue 
             #project.debug_dump()
             #project.debug_dump_keys()
-            # nid = project.write_to_database(self.odoo_out_info)
-            #project.report() 
-            project.write_info_to_csv(f)
+            nid = sales_order.write_to_database(self.odoo_out_info)
+            #sales_order.report() 
+            sales_order.write_info_to_csv(f)
         f.close() 
 
     def do(self):
@@ -215,5 +276,7 @@ class Migration:
         self.initialize()
         #self.migrate_customers()
         #self.migrate_contacts() 
-        self.migrate_projects()
+        #self.migrate_projects()
+        self.migrate_sales_orders()
+        #self.migrate_invoices()
 

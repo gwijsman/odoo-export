@@ -22,7 +22,12 @@ class OdooObject:
 
     def __str__(self):
         if self.data() != False:
-            title = self.data()['display_name']
+            if 'display_name' in self.data().keys():
+                title = self.data()['display_name']
+            elif 'name' in self.data().keys():
+                title = self.data()['name']
+            else:
+                title = 'no name set'
         else:
             title = "empty/no-access"
         return f"{self.external_name()} with id: {self.id} - {title}"
