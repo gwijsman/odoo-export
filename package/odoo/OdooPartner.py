@@ -19,7 +19,6 @@ from .OdooHTMLParser import OdooHTMLParser
 #from pypher import Pypher, __
 from .OdooObject import OdooObject 
 from .OdooFinders import OdooFinders
-from .OdooCountryFinder import OdooCountryFinder
 from ..sqlite.SqliteObject import SqliteObject
 
 logger = logging.getLogger(__name__)
@@ -250,7 +249,7 @@ class OdooPartner(OdooObject, SqliteObject):
     def calculate_multi_join_field(self, key, value):
         # return a new list of ids for the new db
         # return false if noting to do 
-        if key is 'category_id':
+        if key == 'category_id':
             nvalue = []
             categoryfinder = OdooFinders.get_finder('category')
             for oid in value:
@@ -473,3 +472,29 @@ class OdooPartner(OdooObject, SqliteObject):
     # field: res_model (char)
     # field: res_id (int) 
 
+    def sqlite_table_name(self):
+        return 'partner'
+
+    def sqlite_id(self):
+        return self.id
+
+    def sqlite_name(self):
+        return self.data()['name'] 
+
+    def sqlite_migrated(self):
+        if 'migrated2025' in self.data().keys():
+            return self.data()['migrated2025']
+        else:
+            return False 
+
+    def sqlite_reason(self):
+        if 'reasonmigration2025' in self.data().keys():
+            return self.data()['reasonmigration2025']
+        else:
+            return False 
+
+    def sqlite_to_id(self):
+        if 'toid2025' in self.data().keys():
+            return self.data()['toid2025']
+        else:
+            return False 

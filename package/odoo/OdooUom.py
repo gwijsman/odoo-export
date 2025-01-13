@@ -1,6 +1,7 @@
 # 
-# OdooCategory
+# OdooUom
 #
+# Unit of Measure (product need this)
 #
 # Gert Wijsman
 # January 2025
@@ -13,38 +14,38 @@ from ..sqlite.SqliteObject import SqliteObject
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-class OdooCategory(OdooObject, SqliteObject):
+class OdooUom(OdooObject, SqliteObject):
 
     def __init__(self, odoo_info, id, newvalue=None):
         if newvalue != None: 
-            logger.debug("Init Category: %i and new value: %s", id, newvalue)
-            self.category = {'name': newvalue, 'id': id, 'active': True, 'parent_id': False}
+            logger.debug("Init Uom: %i and new value: %s", id, newvalue)
+            self.uom = {'name': newvalue, 'id': id, 'active': True, 'parent_id': False}
             self.id = id
             self.odoo_info = odoo_info
         else: 
-            logger.debug("Init Category: %i", id)
+            logger.debug("Init Uom: %i", id)
             super().__init__(odoo_info, id) 
-            self.category = self.get_from_odoo()
+            self.uom = self.get_from_odoo()
         self.set_cached_record() 
 
     def data(self):
-        return self.category
+        return self.uom
 
     def external_name(self):
-        return "Category" 
+        return "Uom" 
 
     def get_from_odoo(self):
         cr = self.get_cached_record()
         if cr != False:
             return cr 
         try:
-            return self.odoo_info.kw_read_result('res.partner.category', [self.id])
+            return self.odoo_info.kw_read_result('product.uom', [self.id])
         except Exception as v:
             logger.error("ERROR AUTHENTICATING %s", v)
             return False
 
     def sqlite_table_name(self):
-        return 'category'
+        return 'uom'
 
     def sqlite_id(self):
         return self.id
@@ -70,15 +71,15 @@ class OdooCategory(OdooObject, SqliteObject):
         else:
             return False 
 
-    def write_to_database(self, odoo_info):
-        field_list = self.compile_field_list() 
-        try:
-            domain = [field_list] 
-            result = odoo_info.kw_create('res.partner.category', domain)
-            self.data()['toid2025'] = result
-            self.data()['migrated2025'] = True
-            self.set_cached_record() 
-        except Exception as v:
-            logger.error("ERROR AUTHENTICATING %s", v)
-            return False
-        return result 
+#    def write_to_database(self, odoo_info):
+#        field_list = self.compile_field_list() 
+#        try:
+#            domain = [field_list] 
+#            result = odoo_info.kw_create('res.partner.uom', domain)
+#            self.data()['toid2025'] = result
+#            self.data()['migrated2025'] = True
+#            self.set_cached_record() 
+#        except Exception as v:
+#            logger.error("ERROR AUTHENTICATING %s", v)
+#            return False
+#        return result 

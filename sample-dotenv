@@ -1,9 +1,23 @@
 ODOO_DB=database name
 ODOO_USERNAME="username"
 ODOO_PASSWORD="password"
-
 ODOO_HOST=odoohost
 
-TEXT_OUTPUT_FOLDER=/tmp
+ODOO_DB_OUT="database name"
+ODOO_USERNAME_OUT="username"
+ODOO_PASSWORD_OUT="password"
+ODOO_HOST_OUT=host.odoo.com
 
-LOG_FILE=/var/log/logfile.log
+TEXT_OUTPUT_FOLDER=D:\output
+#TEXT_OUTPUT_FOLDER=/tmp
+
+URL_OUTPUT_FOLDER=file://D://output
+
+LOG_FILE=D:\log\log-odoo-export.log
+#LOG_FILE=/var/log/logfile.log
+
+#SQLite db
+SQLITEFILE=D:\cachedb\test.db
+
+#Filters
+FILTERFOLDER=D:\filters

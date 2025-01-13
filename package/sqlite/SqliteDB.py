@@ -26,7 +26,24 @@ class SqliteDB():
         return result
     
     def initialize_db(self):
-        for tablename in ['customer', 'contact', 'country', 'state', 'category', 'title', 'project', 'analytic_account']:
+        for tablename in [
+            'customer', 
+            'contact', 
+            'country', 
+            'state', 
+            'category', 
+            'title', 
+            'project', 
+            'analytic_account', 
+            'sales_order', 
+            'sales_order_line',
+            'invoice', 
+#            'partner', 
+            'currency', 
+            'product',
+            'uom',
+            'tax',
+            ]:
             sql = "CREATE TABLE IF NOT EXISTS " + tablename + "(" + \
             """
             id       INTEGER  PRIMARY KEY,
